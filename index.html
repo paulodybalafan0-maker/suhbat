@@ -160,9 +160,9 @@ function draw(){const box=$('msgs');const near=box.scrollHeight-box.scrollTop-bo
  const list=(msgs[cur.id]||[]).filter(d=>!filt||d.text.toLowerCase().includes(filt));
  if(!list.length)box.append(el('div','empty',filt?'Hech narsa topilmadi':'Hali xabar yoʻq. Birinchi boʻlib yozing!'));
  list.forEach(d=>{const mine=d.name===me;const w=el('div','m'+(mine?' me':''));
-  if(!mine&&!cur.dm){const a=el('div','av sm',d.name[0].toUpperCase());a.style.background=colorOf(d.name);w.append(a)}
+  if(!mine&&!cur.dm){const a=el('div','av sm',d.name[0].toUpperCase());a.style.background=colorOf(d.name);a.style.cursor='pointer';a.onclick=()=>showProf(d.name);w.append(a)}
   const b=el('div','b');
-  if(!mine&&!cur.dm){const n=el('div','who',d.name);n.style.color=colorOf(d.name);b.append(n)}
+  if(!mine&&!cur.dm){const n=el('div','who',d.name);n.style.color=colorOf(d.name);n.onclick=e=>{e.stopPropagation();showProf(d.name)};b.append(n)}
   if(d.re){const q=el('div','q');q.append(el('b',null,d.re.name+': '),document.createTextNode(d.re.text));b.append(q)}
   b.append(el('span',null,d.text),el('div','meta',hm(d.ts)));
   const ac=el('div','act');const rb=el('button',null,'↩ Javob');rb.onclick=e=>{e.stopPropagation();replyTo={name:d.name,text:d.text.slice(0,80)};$('barx').textContent=d.name+': '+replyTo.text;$('bar').classList.add('show');$('txt').focus()};ac.append(rb);
