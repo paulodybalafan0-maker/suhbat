@@ -53,6 +53,17 @@ input,textarea{font:inherit}
 .comp textarea{flex:1;resize:none;max-height:120px;border:0;outline:none;background:var(--hov);color:var(--ink);padding:9px 14px;border-radius:20px}
 .send{background:var(--acc);color:#fff}
 .conn{font-size:12px;text-align:center;padding:3px;background:#f5a623;color:#222}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:16px;z-index:20}
+.box{background:var(--side);border-radius:16px;padding:22px;width:min(380px,100%);display:flex;flex-direction:column;gap:10px}
+.box h2{margin:0}.box label{font-size:13px;color:var(--mute)}
+.box input[type=text],.box textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--hov);color:var(--ink);outline:none}
+.chk{display:flex;gap:8px;align-items:center;color:var(--ink)!important;font-size:14px!important}
+.rowb{display:flex;gap:8px}.rowb .btn{flex:1}.gray{background:var(--hov);color:var(--ink)}.red{background:#d33}
+.call{position:fixed;inset:0;background:#000;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.call video{max-width:100%;max-height:78%;background:#111}
+.call #lv{position:absolute;right:12px;top:12px;width:110px;border-radius:10px}
+.cst{color:#fff;padding:12px;font-size:16px}.cbar{display:flex;gap:14px;padding:12px}
+.cbar button{width:56px;height:56px;border-radius:50%;background:#333;font-size:24px}.cbar .red{background:#d33}
 @media (max-width:720px){.app{grid-template-columns:1fr}.main{display:none}.app.chat .side{display:none}.app.chat .main{display:flex}.back{display:grid}}
 </style>
 </head>
@@ -69,7 +80,7 @@ input,textarea{font:inherit}
 </div>
 <div class="app hide" id="app">
   <aside class="side">
-    <div class="top"><h1>Suhbat</h1><button class="ib" id="theme" title="Mavzu">🌓</button><button class="ib" id="out" title="Chiqish">⎋</button></div>
+    <div class="top"><h1>Suhbat</h1><button class="ib" id="pb" title="Profil">👤</button><button class="ib" id="theme" title="Mavzu">🌓</button><button class="ib" id="out" title="Chiqish">⎋</button></div>
     <input class="srch" id="qs" placeholder="Foydalanuvchi yoki chat qidirish…">
     <div class="list" id="list"></div>
   </aside>
@@ -80,7 +91,7 @@ input,textarea{font:inherit}
       <div class="av sm" id="hav"></div>
       <div class="mid"><div class="nm" id="hnm"></div><div class="pv" id="hsub"></div></div>
       <input class="srch find" id="find" placeholder="Xabarlardan qidirish…">
-      <button class="ib" id="fb" title="Qidirish">🔍</button>
+      <button class="ib hide" id="cA" title="Ovozli qoʻngʻiroq">📞</button><button class="ib hide" id="cV" title="Video qoʻngʻiroq">📹</button><button class="ib" id="fb" title="Qidirish">🔍</button>
     </div>
     <div class="msgs" id="msgs"></div>
     <div class="bar" id="bar"><span id="barx"></span><button class="ib" id="barc">✕</button></div>
@@ -92,12 +103,23 @@ input,textarea{font:inherit}
     </div>
   </section>
 </div>
+<div class="modal hide" id="prof"><div class="box">
+ <h2 id="pn"></h2>
+ <label>Oʻzi haqida</label><textarea id="pbio" rows="2" maxlength="200"></textarea>
+ <label>Tugʻilgan kun</label><input type="text" id="pbd" maxlength="20" placeholder="01.01.2000">
+ <label>Telefon</label><input type="text" id="pph" maxlength="20" placeholder="+998…">
+ <div id="pown"><label class="chk"><input type="checkbox" id="hp"> Telefonni yashirish</label><label class="chk"><input type="checkbox" id="hb"> Tugʻilgan kunni yashirish</label></div>
+ <div class="rowb"><button class="btn gray" id="pclose">Yopish</button><button class="btn" id="psave">Saqlash</button></div>
+</div></div>
+<div class="modal hide" id="inc"><div class="box"><h2 id="itx"></h2><div class="rowb"><button class="btn red" id="idec">Rad etish</button><button class="btn" id="iacc">Qabul qilish</button></div></div></div>
+<div class="call hide" id="call"><video id="rv" autoplay playsinline></video><video id="lv" autoplay playsinline muted></video><div class="cst" id="cst"></div>
+ <div class="cbar"><button id="mute">🎤</button><button class="red" id="hang">✕</button></div></div>
 <script>
 const $=id=>document.getElementById(id);
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const GROUPS=[{id:'g:umumiy',name:'Umumiy guruh',em:'💬',c:'#2a8bd8'},{id:'g:texno',name:'Texnologiya',em:'💻',c:'#8e5bd6'},{id:'g:dostlar',name:'Doʻstlar',em:'🎉',c:'#e0762b'}];
 const EMO='😀 😂 🥰 😎 🤔 😢 😡 👍 👏 🙏 🔥 ❤️ 🎉 ✅ 👀 💯'.split(' ');
-let tok=localStorage.getItem('tk'),me='',ws=null,cur=null,peers=[],msgs={},unread={},last={},replyTo=null,filt='',reg=false,retry=0,found=[];
+let tok=localStorage.getItem('tk'),me='',ws=null,cur=null,peers=[],msgs={},unread={},last={},replyTo=null,filt='',reg=false,retry=0,found=[],online=[];
 const colorOf=s=>{let h=0;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))%360;return 'hsl('+h+',55%,48%)'};
 const hm=t=>new Date(t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
 const dmId=p=>'d:'+[me.toLowerCase(),p.toLowerCase()].sort().join('|');
@@ -121,7 +143,7 @@ function connect(){ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+':
   if(d.type==='msg'){if(d.room.startsWith('d:')&&!rooms().some(r=>r.id===d.room)){const o=d.name.toLowerCase()===me.toLowerCase()?null:d.name;if(o)peers.push(o)}
    (msgs[d.room]=msgs[d.room]||[]).push(d);last[d.room]=d;if(!cur||cur.id!==d.room)unread[d.room]=(unread[d.room]||0)+1;
    if(cur&&cur.id===d.room)draw();drawList()}
-  else if(d.type==='del'){msgs[d.room]=(msgs[d.room]||[]).filter(m=>m.id!==d.id);const l=msgs[d.room];last[d.room]=l[l.length-1]||null;if(cur&&cur.id===d.room)draw();drawList()}}}
+  else if(d.type==='online'){online=d.names;hdr()}else if(d.type==='rtc'){onRtc(d)}else if(d.type==='del'){msgs[d.room]=(msgs[d.room]||[]).filter(m=>m.id!==d.id);const l=msgs[d.room];last[d.room]=l[l.length-1]||null;if(cur&&cur.id===d.room)draw();drawList()}}}
 async function load(room,force){if(msgs[room]&&!force)return;try{msgs[room]=await api('history?room='+encodeURIComponent(room));const l=msgs[room];last[room]=l[l.length-1]||null}catch(e){if(e.status===401){localStorage.removeItem('tk');location.reload()}}}
 /* ---- ekran ---- */
 function row(r,sub,badge){const b=el('button','row'+(cur&&cur.id===r.id?' on':''));const a=el('div','av',r.em);a.style.background=r.c;const m=el('div','mid');m.append(el('div','nm',r.name),el('div','pv',sub));b.append(a,m);if(badge)b.append(el('div','badge',badge));return b}
@@ -132,7 +154,7 @@ function drawList(){const l=$('list'),q=$('qs').value.trim().toLowerCase();l.tex
   found.forEach(n=>{const r={id:dmId(n),name:n,em:n[0].toUpperCase(),c:colorOf(n),dm:true};const b=row(r,'Yangi suhbat boshlash');b.onclick=()=>{if(!peers.includes(n))peers.push(n);$('qs').value='';found=[];open(r)};l.append(b)})}}
 $('qs').oninput=async()=>{const q=$('qs').value.trim();found=[];drawList();if(q.length>=2){try{found=(await api('users?q='+encodeURIComponent(q))).filter(n=>!peers.includes(n));drawList()}catch(e){}}};
 async function open(r){cur=r;unread[r.id]=0;replyTo=null;$('bar').classList.remove('show');$('find').value='';filt='';$('app').classList.add('chat');
- const a=$('hav');a.textContent=r.em;a.style.background=r.c;$('hnm').textContent=r.name;$('hsub').textContent=r.dm?'Shaxsiy suhbat':'Umumiy guruh';
+ const a=$('hav');a.textContent=r.em;a.style.background=r.c;$('hnm').textContent=r.name;hdr();
  $('msgs').dataset.init='';drawList();await load(r.id);draw()}
 function draw(){const box=$('msgs');const near=box.scrollHeight-box.scrollTop-box.clientHeight<120||!box.dataset.init;box.textContent='';
  const list=(msgs[cur.id]||[]).filter(d=>!filt||d.text.toLowerCase().includes(filt));
@@ -160,6 +182,50 @@ $('back').onclick=()=>$('app').classList.remove('chat');
 $('fb').onclick=()=>{$('find').classList.toggle('show');$('find').focus()};
 $('find').oninput=e=>{filt=e.target.value.trim().toLowerCase();draw()};
 $('theme').onclick=()=>{const r=document.documentElement;const d=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=d?'light':'dark'};
+
+/* ---- onlayn, profil ---- */
+function hdr(){if(!cur)return;const dm=!!cur.dm;
+ $('hsub').textContent=dm?(online.some(n=>n.toLowerCase()===cur.name.toLowerCase())?'onlayn':'oflayn'):'Umumiy guruh';
+ $('cA').classList.toggle('hide',!dm);$('cV').classList.toggle('hide',!dm)}
+async function showProf(name){try{const p=await api('profile?name='+encodeURIComponent(name||''));
+ $('pn').textContent=p.name;$('pbio').value=p.bio||'';$('pbd').value=p.bday||'';$('pph').value=p.phone||'';
+ [['pbio','phone'],['pbd','bday'],['pph','phone']].forEach(([i,k])=>{$(i).disabled=!p.own;if(!p.own&&i!=='pbio'&&p[k]===undefined)$(i).placeholder='Yashirin'});
+ $('pown').classList.toggle('hide',!p.own);$('psave').classList.toggle('hide',!p.own);
+ if(p.own){$('hp').checked=!!(p.priv&&p.priv.hide_phone);$('hb').checked=!!(p.priv&&p.priv.hide_bday)}
+ $('prof').classList.remove('hide')}catch(e){alert(e.message)}}
+$('pb').onclick=()=>showProf('');
+$('hav').onclick=$('hnm').onclick=()=>{if(cur&&cur.dm)showProf(cur.name)};
+$('pclose').onclick=()=>$('prof').classList.add('hide');
+$('psave').onclick=async()=>{try{await api('profile',{body:{bio:$('pbio').value,bday:$('pbd').value,phone:$('pph').value,priv:{hide_phone:$('hp').checked,hide_bday:$('hb').checked}}});$('prof').classList.add('hide')}catch(e){alert(e.message)}};
+/* ---- qoʻngʻiroq (WebRTC) ---- */
+const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'}]}; // kerak boʻlsa bu yerga TURN server qoʻshiladi
+let pc=null,lstream=null,peer=null,pend=[],incm=null;
+const sig=(to,data)=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({type:'rtc',to,data}))};
+async function mk(video){lstream=await navigator.mediaDevices.getUserMedia({audio:true,video});$('lv').srcObject=lstream;
+ pc=new RTCPeerConnection(ICE);lstream.getTracks().forEach(t=>pc.addTrack(t,lstream));
+ pc.onicecandidate=e=>{if(e.candidate)sig(peer,{c:e.candidate})};
+ pc.ontrack=e=>{$('rv').srcObject=e.streams[0]};
+ pc.onconnectionstatechange=()=>{if(pc&&pc.connectionState==='connected')$('cst').textContent=peer;if(pc&&['failed','closed'].includes(pc.connectionState))endCall(false)};
+ $('lv').classList.toggle('hide',!video);$('mute').textContent='🎤';$('call').classList.remove('hide')}
+async function flush(){for(const c of pend)try{await pc.addIceCandidate(c)}catch(e){}pend=[]}
+async function startCall(video){if(!cur||!cur.dm||pc||incm)return;peer=cur.name;
+ try{await mk(video)}catch(e){alert('Mikrofon yoki kamera ruxsati kerak');endCall(false);return}
+ $('cst').textContent=peer+' ga qoʻngʻiroq…';const o=await pc.createOffer();await pc.setLocalDescription(o);sig(peer,{offer:o,video})}
+function endCall(notify){if(notify&&peer)sig(peer,{end:1});if(pc){pc.onconnectionstatechange=null;pc.close()}pc=null;
+ if(lstream)lstream.getTracks().forEach(t=>t.stop());lstream=null;peer=null;pend=[];$('rv').srcObject=null;$('call').classList.add('hide')}
+async function onRtc(d){const x=d.data||{};
+ if(x.offer){if(pc||incm){sig(d.from,{end:1});return}incm={from:d.from,offer:x.offer,video:x.video};pend=[];
+  $('itx').textContent=d.from+(x.video?' video':' ovozli')+' qoʻngʻiroq qilyapti';$('inc').classList.remove('hide')}
+ else if(x.answer&&pc){await pc.setRemoteDescription(x.answer);await flush()}
+ else if(x.c){if(pc&&pc.remoteDescription)try{await pc.addIceCandidate(x.c)}catch(e){}else pend.push(x.c)}
+ else if(x.end){if(incm&&incm.from===d.from){incm=null;$('inc').classList.add('hide')}if(peer===d.from)endCall(false)}}
+$('iacc').onclick=async()=>{const i=incm;incm=null;$('inc').classList.add('hide');peer=i.from;const keep=pend;pend=[];
+ try{await mk(i.video)}catch(e){alert('Mikrofon yoki kamera ruxsati kerak');sig(i.from,{end:1});endCall(false);return}
+ pend=keep;await pc.setRemoteDescription(i.offer);await flush();const a=await pc.createAnswer();await pc.setLocalDescription(a);sig(peer,{answer:a})};
+$('idec').onclick=()=>{if(incm)sig(incm.from,{end:1});incm=null;pend=[];$('inc').classList.add('hide')};
+$('hang').onclick=()=>endCall(true);
+$('mute').onclick=()=>{if(!lstream)return;const t=lstream.getAudioTracks()[0];t.enabled=!t.enabled;$('mute').textContent=t.enabled?'🎤':'🔇'};
+$('cA').onclick=()=>startCall(false);$('cV').onclick=()=>startCall(true);
 (async()=>{if(!tok)return;try{me=(await api('me')).name;start()}catch(e){localStorage.removeItem('tk');tok=null}})();
 </script>
 </body>
