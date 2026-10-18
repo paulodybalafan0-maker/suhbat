@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Suhbat — messenjer</title>
+<style>
+:root{--side:#fff;--chat:#dfe8ee;--ink:#17212b;--mute:#6b7c8d;--line:#e3e8ec;--acc:#2a8bd8;--in:#fff;--out:#d9f0c4;--hov:#f0f4f7;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--side:#17212b;--chat:#0e1621;--ink:#e8eef3;--mute:#7d8e9e;--line:#0e1621;--in:#182533;--out:#2b5278;--hov:#202b36;color-scheme:dark}}
+:root[data-theme="dark"]{--side:#17212b;--chat:#0e1621;--ink:#e8eef3;--mute:#7d8e9e;--line:#0e1621;--in:#182533;--out:#2b5278;--hov:#202b36;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--side);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input,textarea{font:inherit}
+.hide{display:none!important}
+.login{height:100%;display:grid;place-items:center;background:var(--chat);padding:16px}
+.card{background:var(--side);padding:28px;border-radius:16px;width:min(360px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 24px rgba(0,0,0,.15)}
+.card h1{margin:0;text-align:center}.card p{margin:0;text-align:center;color:var(--mute)}
+.card input{padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--hov);color:var(--ink);outline:none}
+.btn{background:var(--acc);color:#fff;padding:11px;border-radius:10px;font-weight:600}
+.alt{color:var(--acc);text-align:center}.err{color:#d33;text-align:center;font-size:13px;min-height:18px}
+.app{display:grid;grid-template-columns:340px 1fr;height:100%;max-width:1300px;margin:0 auto}
+.side{display:flex;flex-direction:column;border-right:1px solid var(--line);min-height:0;background:var(--side)}
+.top{display:flex;align-items:center;gap:6px;padding:10px 12px}.top h1{font-size:18px;margin:0;flex:1}
+.ib{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:18px;flex:none}.ib:hover{background:var(--hov)}
+.srch{margin:0 12px 8px;padding:9px 14px;border-radius:20px;border:0;background:var(--hov);color:var(--ink);outline:none}
+.list{overflow-y:auto;flex:1}.sec{padding:8px 14px;font-size:12px;color:var(--mute);text-transform:uppercase}
+.row{display:flex;gap:12px;align-items:center;width:100%;padding:10px 12px;text-align:left}
+.row:hover{background:var(--hov)}.row.on{background:var(--acc);color:#fff}.row.on .pv{color:#e6f1fb}
+.av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:22px;flex:none;color:#fff;font-weight:600}
+.sm{width:32px;height:32px;font-size:14px}
+.mid{flex:1;min-width:0}.nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv{color:var(--mute);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{background:var(--acc);color:#fff;border-radius:12px;min-width:22px;padding:1px 7px;font-size:12px;text-align:center}
+.row.on .badge{background:#fff;color:var(--acc)}
+.main{display:flex;flex-direction:column;min-height:0;background:var(--chat);min-width:0}
+.head{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--side);border-bottom:1px solid var(--line)}
+.back{display:none}.find{display:none;margin:0;flex:1}.find.show{display:block}
+.msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:4px}
+.m{display:flex;gap:8px;align-items:flex-end}.m.me{flex-direction:row-reverse}
+.b{max-width:min(78%,520px);padding:6px 10px 4px;border-radius:14px;background:var(--in);box-shadow:0 1px 1px rgba(0,0,0,.12);overflow-wrap:anywhere;white-space:pre-wrap;cursor:pointer}
+.me .b{background:var(--out)}.who{font-weight:600;font-size:13px}
+.q{border-left:3px solid var(--acc);padding:1px 8px;margin:2px 0 4px;font-size:13px;color:var(--mute);background:rgba(42,139,216,.1);border-radius:4px}
+.meta{font-size:11px;color:var(--mute);text-align:right;margin-top:2px}
+.act{display:none;gap:4px;justify-content:flex-end;margin-top:2px}.b.open .act{display:flex}
+.act button{font-size:12px;padding:3px 8px;border-radius:10px;background:var(--hov)}
+.empty{margin:auto;text-align:center;color:var(--mute);background:rgba(0,0,0,.12);padding:8px 16px;border-radius:16px}
+.bar{display:none;align-items:center;gap:8px;padding:6px 14px;background:var(--side);border-top:1px solid var(--line);font-size:13px}
+.bar.show{display:flex}.bar span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-left:3px solid var(--acc);padding-left:8px;color:var(--mute)}
+.emo{display:none;flex-wrap:wrap;gap:2px;padding:6px 10px;background:var(--side);border-top:1px solid var(--line)}.emo.show{display:flex}
+.emo button{font-size:22px;width:38px;height:38px;border-radius:8px}.emo button:hover{background:var(--hov)}
+.comp{display:flex;align-items:flex-end;gap:6px;padding:8px 10px;background:var(--side);border-top:1px solid var(--line)}
+.comp textarea{flex:1;resize:none;max-height:120px;border:0;outline:none;background:var(--hov);color:var(--ink);padding:9px 14px;border-radius:20px}
+.send{background:var(--acc);color:#fff}
+.conn{font-size:12px;text-align:center;padding:3px;background:#f5a623;color:#222}
+@media (max-width:720px){.app{grid-template-columns:1fr}.main{display:none}.app.chat .side{display:none}.app.chat .main{display:flex}.back{display:grid}}
+</style>
+</head>
+<body>
+<div class="login" id="login">
+  <div class="card">
+    <h1>💬 Suhbat</h1><p id="lt">Hisobingizga kiring</p>
+    <input id="ln" placeholder="Login (lotin harflari)" autocomplete="username">
+    <input id="lp" type="password" placeholder="Parol" autocomplete="current-password">
+    <div class="err" id="le"></div>
+    <button class="btn" id="lb">Kirish</button>
+    <button class="alt" id="ls">Hisobingiz yoʻqmi? Roʻyxatdan oʻting</button>
+  </div>
+</div>
+<div class="app hide" id="app">
+  <aside class="side">
+    <div class="top"><h1>Suhbat</h1><button class="ib" id="theme" title="Mavzu">🌓</button><button class="ib" id="out" title="Chiqish">⎋</button></div>
+    <input class="srch" id="qs" placeholder="Foydalanuvchi yoki chat qidirish…">
+    <div class="list" id="list"></div>
+  </aside>
+  <section class="main">
+    <div class="conn hide" id="conn">Ulanmoqda…</div>
+    <div class="head">
+      <button class="ib back" id="back">←</button>
+      <div class="av sm" id="hav"></div>
+      <div class="mid"><div class="nm" id="hnm"></div><div class="pv" id="hsub"></div></div>
+      <input class="srch find" id="find" placeholder="Xabarlardan qidirish…">
+      <button class="ib" id="fb" title="Qidirish">🔍</button>
+    </div>
+    <div class="msgs" id="msgs"></div>
+    <div class="bar" id="bar"><span id="barx"></span><button class="ib" id="barc">✕</button></div>
+    <div class="emo" id="emo"></div>
+    <div class="comp">
+      <button class="ib" id="eb">😊</button>
+      <textarea id="txt" rows="1" maxlength="2000" placeholder="Xabar yozing…"></textarea>
+      <button class="ib send" id="go">➤</button>
+    </div>
+  </section>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const GROUPS=[{id:'g:umumiy',name:'Umumiy guruh',em:'💬',c:'#2a8bd8'},{id:'g:texno',name:'Texnologiya',em:'💻',c:'#8e5bd6'},{id:'g:dostlar',name:'Doʻstlar',em:'🎉',c:'#e0762b'}];
+const EMO='😀 😂 🥰 😎 🤔 😢 😡 👍 👏 🙏 🔥 ❤️ 🎉 ✅ 👀 💯'.split(' ');
+let tok=localStorage.getItem('tk'),me='',ws=null,cur=null,peers=[],msgs={},unread={},last={},replyTo=null,filt='',reg=false,retry=0,found=[];
+const colorOf=s=>{let h=0;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))%360;return 'hsl('+h+',55%,48%)'};
+const hm=t=>new Date(t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+const dmId=p=>'d:'+[me.toLowerCase(),p.toLowerCase()].sort().join('|');
+const rooms=()=>GROUPS.concat(peers.map(p=>({id:dmId(p),name:p,em:p[0].toUpperCase(),c:colorOf(p),dm:true})));
+async function api(p,o={}){const r=await fetch('/api/'+p,{method:o.body?'POST':'GET',headers:{'Content-Type':'application/json','x-token':tok||''},body:o.body?JSON.stringify(o.body):undefined});
+ const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(typeof j.detail==='string'?j.detail:'Xatolik');e.status=r.status;throw e}return j}
+/* ---- kirish ---- */
+$('ls').onclick=()=>{reg=!reg;$('lt').textContent=reg?'Yangi hisob yarating':'Hisobingizga kiring';$('lb').textContent=reg?'Roʻyxatdan oʻtish':'Kirish';$('ls').textContent=reg?'Hisobingiz bormi? Kiring':'Hisobingiz yoʻqmi? Roʻyxatdan oʻting';$('le').textContent=''};
+async function auth(){try{const j=await api(reg?'register':'login',{body:{name:$('ln').value,password:$('lp').value}});tok=j.token;localStorage.setItem('tk',tok);me=j.name;start()}catch(e){$('le').textContent=e.message}}
+$('lb').onclick=auth;$('lp').onkeydown=e=>{if(e.key==='Enter')auth()};
+$('out').onclick=()=>{localStorage.removeItem('tk');location.reload()};
+async function start(){$('login').classList.add('hide');$('app').classList.remove('hide');
+ try{peers=await api('dms')}catch(e){}
+ connect();drawList();open(GROUPS[0]);if(innerWidth<=720)$('app').classList.remove('chat');
+ GROUPS.concat(peers.map(p=>({id:dmId(p)}))).forEach(r=>load(r.id).then(drawList))}
+/* ---- ulanish ---- */
+function connect(){ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/ws?token='+tok);
+ ws.onopen=()=>{retry=0;$('conn').classList.add('hide');if(cur)load(cur.id,true)};
+ ws.onclose=e=>{if(e.code===4401){localStorage.removeItem('tk');location.reload();return}$('conn').classList.remove('hide');$('conn').textContent='Ulanish uzildi, qayta ulanmoqda…';setTimeout(connect,Math.min(1000*2**retry++,15000))};
+ ws.onmessage=e=>{const d=JSON.parse(e.data);
+  if(d.type==='msg'){if(d.room.startsWith('d:')&&!rooms().some(r=>r.id===d.room)){const o=d.name.toLowerCase()===me.toLowerCase()?null:d.name;if(o)peers.push(o)}
+   (msgs[d.room]=msgs[d.room]||[]).push(d);last[d.room]=d;if(!cur||cur.id!==d.room)unread[d.room]=(unread[d.room]||0)+1;
+   if(cur&&cur.id===d.room)draw();drawList()}
+  else if(d.type==='del'){msgs[d.room]=(msgs[d.room]||[]).filter(m=>m.id!==d.id);const l=msgs[d.room];last[d.room]=l[l.length-1]||null;if(cur&&cur.id===d.room)draw();drawList()}}}
+async function load(room,force){if(msgs[room]&&!force)return;try{msgs[room]=await api('history?room='+encodeURIComponent(room));const l=msgs[room];last[room]=l[l.length-1]||null}catch(e){if(e.status===401){localStorage.removeItem('tk');location.reload()}}}
+/* ---- ekran ---- */
+function row(r,sub,badge){const b=el('button','row'+(cur&&cur.id===r.id?' on':''));const a=el('div','av',r.em);a.style.background=r.c;const m=el('div','mid');m.append(el('div','nm',r.name),el('div','pv',sub));b.append(a,m);if(badge)b.append(el('div','badge',badge));return b}
+function drawList(){const l=$('list'),q=$('qs').value.trim().toLowerCase();l.textContent='';
+ rooms().filter(r=>r.name.toLowerCase().includes(q)).forEach(r=>{const x=last[r.id];
+  const b=row(r,x?(x.name===me?'Siz: ':(r.dm?'':x.name+': '))+x.text:'Xabar yoʻq',unread[r.id]);b.onclick=()=>open(r);l.append(b)});
+ if(q.length>=2&&found.length){l.append(el('div','sec','Foydalanuvchilar'));
+  found.forEach(n=>{const r={id:dmId(n),name:n,em:n[0].toUpperCase(),c:colorOf(n),dm:true};const b=row(r,'Yangi suhbat boshlash');b.onclick=()=>{if(!peers.includes(n))peers.push(n);$('qs').value='';found=[];open(r)};l.append(b)})}}
+$('qs').oninput=async()=>{const q=$('qs').value.trim();found=[];drawList();if(q.length>=2){try{found=(await api('users?q='+encodeURIComponent(q))).filter(n=>!peers.includes(n));drawList()}catch(e){}}};
+async function open(r){cur=r;unread[r.id]=0;replyTo=null;$('bar').classList.remove('show');$('find').value='';filt='';$('app').classList.add('chat');
+ const a=$('hav');a.textContent=r.em;a.style.background=r.c;$('hnm').textContent=r.name;$('hsub').textContent=r.dm?'Shaxsiy suhbat':'Umumiy guruh';
+ $('msgs').dataset.init='';drawList();await load(r.id);draw()}
+function draw(){const box=$('msgs');const near=box.scrollHeight-box.scrollTop-box.clientHeight<120||!box.dataset.init;box.textContent='';
+ const list=(msgs[cur.id]||[]).filter(d=>!filt||d.text.toLowerCase().includes(filt));
+ if(!list.length)box.append(el('div','empty',filt?'Hech narsa topilmadi':'Hali xabar yoʻq. Birinchi boʻlib yozing!'));
+ list.forEach(d=>{const mine=d.name===me;const w=el('div','m'+(mine?' me':''));
+  if(!mine&&!cur.dm){const a=el('div','av sm',d.name[0].toUpperCase());a.style.background=colorOf(d.name);w.append(a)}
+  const b=el('div','b');
+  if(!mine&&!cur.dm){const n=el('div','who',d.name);n.style.color=colorOf(d.name);b.append(n)}
+  if(d.re){const q=el('div','q');q.append(el('b',null,d.re.name+': '),document.createTextNode(d.re.text));b.append(q)}
+  b.append(el('span',null,d.text),el('div','meta',hm(d.ts)));
+  const ac=el('div','act');const rb=el('button',null,'↩ Javob');rb.onclick=e=>{e.stopPropagation();replyTo={name:d.name,text:d.text.slice(0,80)};$('barx').textContent=d.name+': '+replyTo.text;$('bar').classList.add('show');$('txt').focus()};ac.append(rb);
+  const cb=el('button',null,'⧉ Nusxa');cb.onclick=e=>{e.stopPropagation();try{navigator.clipboard.writeText(d.text)}catch(x){}cb.textContent='✓'};ac.append(cb);
+  if(mine){const x=el('button',null,'🗑 Oʻchirish');x.onclick=e=>{e.stopPropagation();if(confirm('Xabar oʻchirilsinmi?'))ws.send(JSON.stringify({type:'del',room:cur.id,id:d.id}))};ac.append(x)}
+  b.append(ac);b.onclick=()=>b.classList.toggle('open');w.append(b);box.append(w)});
+ if(near){box.scrollTop=box.scrollHeight;box.dataset.init=1}}
+function send(){const t=$('txt').value.trim();if(!t||!cur||!ws||ws.readyState!==1)return;
+ ws.send(JSON.stringify({type:'send',room:cur.id,text:t,re:replyTo}));$('txt').value='';$('txt').style.height='auto';replyTo=null;$('bar').classList.remove('show');$('emo').classList.remove('show');
+ setTimeout(()=>{$('msgs').scrollTop=$('msgs').scrollHeight},80)}
+EMO.forEach(e=>{const b=el('button',null,e);b.onclick=()=>{$('txt').value+=e;$('txt').focus()};$('emo').append(b)});
+$('go').onclick=send;$('eb').onclick=()=>$('emo').classList.toggle('show');
+$('txt').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}};
+$('txt').oninput=e=>{const t=e.target;t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px'};
+$('barc').onclick=()=>{replyTo=null;$('bar').classList.remove('show')};
+$('back').onclick=()=>$('app').classList.remove('chat');
+$('fb').onclick=()=>{$('find').classList.toggle('show');$('find').focus()};
+$('find').oninput=e=>{filt=e.target.value.trim().toLowerCase();draw()};
+$('theme').onclick=()=>{const r=document.documentElement;const d=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=d?'light':'dark'};
+(async()=>{if(!tok)return;try{me=(await api('me')).name;start()}catch(e){localStorage.removeItem('tk');tok=null}})();
+</script>
+</body>
+</html>
